@@ -107,6 +107,25 @@ API Usage Examples
 
 	
 
+Test-bed for testing your application 
+-------------------------------------
+When you are 'unit testing' your code maybe you need to stub http requests to test how your application behaves with different responses (and maybe you don't want to automize the whole Instagram sign-in process in order to get the necessary access token). 
+You can have this gem to respond with pre-defined responses so you don't have to stub them yourself.  
+Note: you need to 'gem install webmock'. 
+	
+	#activate testbed (ie: in your spec_helper)
+	Instagram.activated_test_bed 
+	#note that only requests shown here are stubbed; any other request will still connect to Instagram
+
+	response = Instagram.get_access_token("test_bed_code", :redirect_uri => CALLBACK_URL)
+	response.user.username #=> "steookk"
+	response.access_token #=> "test_bed_at"
+	#unit test your callback action 	
+	expect(session[:access_token]).to match response.access_token #=> "test_bed_at"
+
+If for some reason you need to disable WebMock, just write in your tests: 
+	WebMock.disable!
+
 
 Contributing
 ------------
@@ -126,7 +145,7 @@ Here are some ways *you* can contribute:
 
 
 Submitting an Issue
--------------------
+------------------- t
 We use the [GitHub issue tracker](http://github.com/Instagram/instagram-ruby-gem/issues) to track bugs and
 features. Before submitting a bug report or feature request, check to make sure it hasn't already
 been submitted. You can indicate support for an existing issuse by voting it up. When submitting a

@@ -1,9 +1,12 @@
 require 'faraday'
 require File.expand_path('../version', __FILE__)
+require File.expand_path('../test_bed', __FILE__)
 
 module Instagram
   # Defines constants and methods related to configuration
   module Configuration
+    include TestBed 
+    
     # An array of valid keys in the options hash when configuring a {Instagram::API}
     VALID_OPTIONS_KEYS = [
       :adapter,

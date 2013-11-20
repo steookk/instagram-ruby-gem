@@ -81,6 +81,31 @@ describe Instagram do
     end
   end
 
+  describe ".activate_test_bed" do
+    before do 
+      Instagram.activate_test_bed
+    end
+    let(:code) { 'test_bed' }
+    let(:access_token) {'test_bed_at'}
+
+    it "should stub '.get_access_token' when with the specific parameter 'code'=code" do
+      response = Instagram.get_access_token(code, 
+                          :redirect_uri => "http://localhost:4567/oauth/callback")
+      response.access_token.should == "test_bed_at"
+      response.user.username.should == "steookk"        
+    end
+
+    it "should allow any other request to connect to the network" do 
+      lambda { Instagram.get_access_token('other_code', 
+                          :redirect_uri => "http://localhost:4567/oauth/callback")}
+              .should raise_error(Instagram::BadRequest)
+      lambda { Instagram.media_popular() }
+              .should raise_error(Instagram::BadRequest)              
+    end
+  end
+  #aggiungere test su test_bed key e creazione metodi stub lo metto qui oppure dentro 
+  #ad api_spec e i vari metodi di client? 
+
   describe ".configure" do
 
     Instagram::Configuration::VALID_OPTIONS_KEYS.each do |key|
