@@ -82,29 +82,153 @@ describe Instagram do
   end
 
   describe ".activate_test_bed" do
-    before do 
-      Instagram.activate_test_bed
+    before :each do 
+      Instagram.activate_test_bed  #this stubs specific requests
+      @access_token = 'test_bed_at'
     end
-    let(:code) { 'test_bed' }
-    let(:access_token) {'test_bed_at'}
+    let!(:client) { Instagram::Client.new(:client_id => 'CID', :client_secret => 'CS', :access_token => @access_token) }
 
-    it "should stub '.get_access_token' when with the specific parameter 'code'=code" do
-      response = Instagram.get_access_token(code, 
-                          :redirect_uri => "http://localhost:4567/oauth/callback")
-      response.access_token.should == "test_bed_at"
-      response.user.username.should == "steookk"        
+    describe "'.get_access_token' for app testing" do    
+      context "when code='test_bed'" do
+        before :each do
+          @response = Instagram.get_access_token('test_bed', 
+                              :redirect_uri => "http://localhost:4567/oauth/callback")
+        end
+
+        it "should stub the post request" do
+          a_request(:post, 'https://api.instagram.com/oauth/access_token/').
+            should have_been_made
+        end
+
+        it "should return a specific access_token and user defined as a fixture" do 
+          @response.access_token.should == "test_bed_at"
+          @response.user.username.should == "steookk"  
+        end     
+      end
+
+      context "when code='test_bed_not_respond'" do
+        before :each do 
+          @response = Instagram.get_access_token('test_bed_not_respond', 
+                                        :redirect_uri => "http://localhost:4567/oauth/callback")
+        end
+
+        it "should stub the post request" do
+          a_request(:post, 'https://api.instagram.com/oauth/access_token/').
+            should have_been_made
+        end
+
+        it "should not respond in order to simulate a network or Instagram problem" do
+          @response.should be nil 
+        end
+      end
+
+      context "when code=anything else" do
+        it "should allow the normal network request" do 
+          lambda { Instagram.get_access_token('other_code', 
+                                        :redirect_uri => "http://localhost:4567/oauth/callback")}
+                  .should raise_error(Instagram::BadRequest)
+        end
+      end
     end
 
-    it "should allow any other request to connect to the network" do 
-      lambda { Instagram.get_access_token('other_code', 
-                          :redirect_uri => "http://localhost:4567/oauth/callback")}
-              .should raise_error(Instagram::BadRequest)
-      lambda { Instagram.media_popular() }
-              .should raise_error(Instagram::BadRequest)              
+    describe "'.media_item(media_id)' when access_token=test_bed_at and media_id=18600493" do
+      before :each do 
+        @media_id = "18600493"
+        @response = client.media_item(@media_id)
+      end
+
+      it "should stub the specific resource with media_id=18600493" do
+        a_get("media/#{@media_id}.json").
+          with(:query => {:access_token => @access_token}).
+          should have_been_made
+      end
+
+      it "should not stub any other resource" do 
+        lambda { client.media_item("1233434") }
+                .should raise_error(Instagram::BadRequest) 
+      end
+
+      it "should return the same media item defined as a fixture and used for specs" do 
+        @response.id.should == @media_id
+        @response.user.username.should == "mikeyk"
+      end
+    end
+
+    describe "'.media_popular' when access_token=test_bed_at" do
+      before :each do 
+        @response = client.media_popular
+      end
+
+      it "should stub the get request" do
+        a_get("media/popular.json").
+          with(:query => {:access_token => @access_token}).
+          should have_been_made
+      end
+
+      it "should return the same media_popular fixture used for specs" do 
+        @response.first.user.username.should == "iam_ess"
+      end
+    end
+
+    describe "'.user_media_feed' when access_token=test_bed_at" do
+      before :each do 
+        @response = client.user_media_feed
+      end
+
+      it "should stub the get request" do
+        a_get("users/self/feed.json").
+          with(:query => {:access_token => @access_token}).
+          should have_been_made
+      end
+
+      it "should return the same user's feed fixture used for specs" do 
+        @response.first.user.username.should == "gaia_ga"
+      end
+    end
+
+    describe "'.user_recent_media' when access_token=test_bed_at" do
+      before :each do 
+        @response = client.user_recent_media
+      end
+
+      it "should stub the self recent media" do
+        a_get("users/self/media/recent.json").
+          with(:query => {:access_token => @access_token}).
+          should have_been_made
+      end
+
+      it "should not stub any other resource" do 
+        lambda { client.user_recent_media("1233434") }
+                .should raise_error(Instagram::BadRequest) 
+      end
+
+      it "should return the same media item defined as a fixture and used for specs" do 
+        @response.first.user.username.should == "steookk"
+      end
+    end
+
+    describe "'.user' when access_token=test_bed_at" do
+      before :each do 
+        @response = client.user('4')
+      end
+
+      it "should stub the user with id = 4" do
+        a_get("users/4.json").
+          with(:query => {:access_token => @access_token}).
+          should have_been_made
+      end
+
+      it "should not stub any other resource" do 
+        lambda { client.user("123") }
+                .should raise_error(Instagram::BadRequest) 
+      end
+
+      it "should return the same media item defined as a fixture and used for specs" do 
+        @response.username.should == "mikeyk"
+      end
     end
   end
-  #aggiungere test su test_bed key e creazione metodi stub lo metto qui oppure dentro 
-  #ad api_spec e i vari metodi di client? 
+
 
   describe ".configure" do
 

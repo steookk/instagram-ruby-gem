@@ -46,7 +46,7 @@ describe Instagram::Client do
         it "should return popular media items" do
           media_popular = @client.media_popular
           media_popular.should be_a Array
-          media_popular.first.user.username == "babycamera"
+          media_popular.first.user.username.should == "iam_ess"
         end
       end
 

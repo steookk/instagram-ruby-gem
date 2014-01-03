@@ -113,17 +113,37 @@ When you are 'unit testing' your code maybe you need to stub http requests to te
 You can have this gem to respond with pre-defined responses so you don't have to stub them yourself.  
 Note: you need to 'gem install webmock'. 
 	
-	#activate testbed (ie: in your spec_helper)
-	Instagram.activated_test_bed 
-	#note that only requests shown here are stubbed; any other request will still connect to Instagram
+	#Activation (ie: in your spec_helper)
+	Instagram.activate_test_bed 
+	#NOTE: only requests shown here are stubbed; any other request will still connect to Instagram (-> WebMock.allow_net_connect!)
 
-	response = Instagram.get_access_token("test_bed_code", :redirect_uri => CALLBACK_URL)
+	#Authentication
+	response = Instagram.get_access_token("test_bed", :redirect_uri => CALLBACK_URL)
 	response.user.username #=> "steookk"
 	response.access_token #=> "test_bed_at"
 	#unit test your callback action 	
 	expect(session[:access_token]).to match response.access_token #=> "test_bed_at"
 
+	#if you need to simulate a problem in Instagram (it doesn't respond)
+	response = Instagram.get_access_token("test_bed_not_respond", :redirect_uri => CALLBACK_URL)
+	#response => nil 
+
+	client = Instagram.client(:access_token => 'test_bed_at')
+	#Media
+	client.media_item('18600493') #18600493 is the only stubbed id
+	client.media.media_popular 
+	#User's media 
+	client.user_media_feed
+	client.user_recent_media
+	#User
+	client.user('4') #4 is the only stubbed id
+	#Tags 
+	client.tag_search('tag')
+	client.tag('tag')
+	client.tag_recent_media('tag')
+
 If for some reason you need to disable WebMock, just write in your tests: 
+	
 	WebMock.disable!
 
 

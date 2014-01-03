@@ -182,8 +182,8 @@ describe Instagram::Client do
             subject{ user_media_feed_response.pagination }
 
             it{ should be_an_instance_of(Hashie::Mash) }
-            its(:next_url){ should == 'http://api.instagram.com/v1/users/self/feed?access_token=f59def8.001cde77128843169627c0308237bafa&max_id=22063131' }
-            its(:next_max_id){ should == '22063131' }
+            its(:next_url){ should == 'https://api.instagram.com/v1/users/self/feed?access_token=test_bed_at&max_id=609867417190750621_12448925' }
+            its(:next_max_id){ should == '609867417190750621_12448925' }
           end
 
           context '.meta' do
@@ -231,7 +231,7 @@ describe Instagram::Client do
           it "should return a list of recent media items for the given user" do
             recent_media = @client.user_recent_media(4)
             recent_media.should be_a Array
-            recent_media.first.user.username.should == "shayne"
+            recent_media.first.user.username.should == "steookk"
           end
         end
 
